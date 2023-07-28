@@ -19,6 +19,7 @@ import javafx.scene.web.WebEngine;
 import javafx.concurrent.Worker;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 /**
@@ -34,8 +35,8 @@ import java.util.ArrayList;
  */
 class c2w_BrowserWindow extends Stage {
 
-    private c2w_WebBrowser c2w_owner;    // the WebBrowser application
-    private WebEngine c2w_webEngine; // loads and manages pages
+    private final c2w_WebBrowser c2w_owner;    // the WebBrowser application
+    private final WebEngine c2w_webEngine; // loads and manages pages
     private Menu c2w_windowMenu;     // holds window-related commands
 
     /**
@@ -95,12 +96,8 @@ class c2w_BrowserWindow extends Stage {
                 location.setText("Location: " + newVal);
         });
 
-        c2w_webEngine.titleProperty().addListener((o, oldVal, newVal) -> {
-            if (newVal == null)
-                setTitle("Untitled " + c2w_owner.c2w_getNextUntitledCount());
-            else
-                setTitle(newVal);
-        });
+        c2w_webEngine.titleProperty().addListener((o, oldVal, newVal) ->
+                setTitle(Objects.requireNonNullElseGet(newVal, () -> "Untitled " + c2w_owner.c2w_getNextUntitledCount())));
 
         /* The "state" of the worker that loads pages is reported in the
          * status label.   When the worker is "running", it means that
@@ -110,22 +107,11 @@ class c2w_BrowserWindow extends Stage {
         c2w_webEngine.getLoadWorker().stateProperty().addListener((o, oldVal, newVal) -> {
             status.setText("Status: " + newVal);
             switch (newVal) {
-                case READY:
-                    status.setText("Status:  Idle.");
-                    break;
-                case SCHEDULED:
-                case RUNNING:
-                    status.setText("Status:  Loading a web page.");
-                    break;
-                case SUCCEEDED:
-                    status.setText("Status:  Web page has been successfully loaded.");
-                    break;
-                case FAILED:
-                    status.setText("Status:  Loading of the web page has failed.");
-                    break;
-                case CANCELLED:
-                    status.setText("Status:  Loading of the web page has been cancelled.");
-                    break;
+                case READY -> status.setText("Status:  Idle.");
+                case SCHEDULED, RUNNING -> status.setText("Status:  Loading a web page.");
+                case SUCCEEDED -> status.setText("Status:  Web page has been successfully loaded.");
+                case FAILED -> status.setText("Status:  Loading of the web page has failed.");
+                case CANCELLED -> status.setText("Status:  Loading of the web page has been cancelled.");
             }
             cancelButton.setDisable(newVal != Worker.State.RUNNING);
         });
@@ -163,13 +149,13 @@ class c2w_BrowserWindow extends Stage {
      * more letters followed by a colon.  If that is not
      * the case, then "http://" is prepended to the string.
      * Thus, it will accept a string such as "google.com"
-     * but will transform that to "http://google.com".
+     * but will transform that to "<a href="http://google.com">Google</a>".
      * (It seems like if the string is still not a legal
      * URL, the web engine will simply load an empty page.
      * It is not reported as an error.)
      */
     private void doLoad(String url) {
-        if (url == null || url.trim().length() == 0)
+        if (url == null || url.trim().isEmpty())
             return;
         url = url.trim();
         if (!url.matches("^[a-zA-Z]+:.*")) {
@@ -197,14 +183,13 @@ class c2w_BrowserWindow extends Stage {
         open.setOnAction(e -> {
             String url = SimpleDialogs.prompt(
                     "Enter the URL of the page that you want to open.", "Get URL");
-            if (url != null && url.trim().length() > 0)
+            if (url != null && !url.trim().isEmpty())
                 c2w_owner.c2w_newBrowserWindow(url);
         });
         c2w_windowMenu = new Menu("Window");
         c2w_windowMenu.getItems().addAll(newWin, close, open, new SeparatorMenuItem());
         c2w_windowMenu.setOnShowing(e -> populateWindowMenu());
-        MenuBar menubar = new MenuBar(c2w_windowMenu);
-        return menubar;
+        return new MenuBar(c2w_windowMenu);
     }
 
 

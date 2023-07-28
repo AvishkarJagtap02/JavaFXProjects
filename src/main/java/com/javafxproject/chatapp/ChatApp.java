@@ -205,7 +205,7 @@ public class ChatApp extends Application {
         } else if (source == c2w_quitButton) {
             try {
                 c2w_window.hide();
-            } catch (SecurityException e) {
+            } catch (SecurityException ignored) {
             }
         } else if (source == c2w_saveButton) {
             c2w_doSave();
@@ -275,7 +275,7 @@ public class ChatApp extends Application {
 
         private volatile ConnectionState state;
         private String remoteHost;
-        private int port;
+        private final int port;
         private ServerSocket listener;
         private Socket socket;
         private PrintWriter out;
@@ -294,7 +294,7 @@ public class ChatApp extends Application {
             c2w_postMessage("\nLISTENING ON PORT " + port + "\n");
             try {
                 setDaemon(true);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             start();
         }
@@ -311,7 +311,7 @@ public class ChatApp extends Application {
             c2w_postMessage("\nCONNECTING TO " + remoteHost + " ON PORT " + port + "\n");
             try {
                 setDaemon(true);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             start();
         }
@@ -357,7 +357,7 @@ public class ChatApp extends Application {
                     socket.close();
                 else if (listener != null)
                     listener.close();
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
 
@@ -425,7 +425,7 @@ public class ChatApp extends Application {
                 // Make sure that the socket, if any, is closed.
                 try {
                     socket.close();
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
             }
             socket = null;
